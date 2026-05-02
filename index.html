@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A full-stack programmer with over 4.5 years of experience, specializing in polished Roblox systems and gameplay experiences. Explore my portfolio now!"
+    />
+    <title>Pdv</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="icon" type="image/x-icon" href="assets/images/logo_nobg.png">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <canvas id="scene3d" aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand" href="#about" aria-label="Pdv home">
+        <span class="brand-mark">P</span>
+        <span>Pdv</span>
+      </a>
+      <div class="header-actions">
+        <span class="availability-dot"></span>
+        <span id="header-status">Available</span>
+      </div>
+    </header>
+
+    <main>
+      <section id="about" class="section hero-section" data-section>
+        <div class="hero-copy glass-panel">
+          <h1>Full-stack programmer with 4.5 years experience</h1>
+          <p>
+            Hello, my name is Pdv. I'm a full-stack programmer with over 4.5 years of experience. In addition, I'm also familiar with Git, GitHub, Rojo (plugin), Blender, and VS Code to support a professional workflow, whether working independently or as part of a team.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-special" href="#projects">View Projects</a>
+            <a class="btn btn-plain" href="#contact">Contact Me</a>
+          </div>
+        </div>
+
+        <aside class="identity-card glass-panel">
+          <div class="status-card">
+            <span class="status-pill"><span class="availability-dot"></span><span id="profile-status">Available</span></span>
+          </div>
+          <div class="avatar-orbit">
+            <div class="avatar-core">Pdv</div>
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </aside>
+      </section>
+
+      <section id="skills" class="section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Skills</span>
+          <h2>Code & Workflow</h2>
+        </div>
+        <div class="skills-layout">
+          <div class="code-gallery" id="code-gallery"></div>
+          <div class="stack-panel glass-panel">
+            <h3>Workflow Tools</h3>
+            <div class="tool-grid" id="tool-grid"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Projects</span>
+          <h2>Featured Projects</h2>
+        </div>
+        <div class="project-grid" id="project-grid"></div>
+      </section>
+
+      <section id="showcases" class="section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Showcases</span>
+          <h2>Devlogs</h2>
+        </div>
+        <div class="showcase-track" id="showcase-track"></div>
+      </section>
+
+      <section id="prices" class="section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Prices</span>
+          <h2>Consult Prices</h2>
+        </div>
+        <div class="price-grid" id="price-grid"></div>
+      </section>
+
+      <section id="tos" class="section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Terms Of Service</span>
+          <h2>Commission Terms</h2>
+        </div>
+        <div class="tos-preview glass-panel">
+          <div>
+            <p>
+              Payments, revisions, delivery scope, ownership, and refund terms are
+              agreed before production. Read the full terms before placing a commission.
+            </p>
+          </div>
+          <a class="btn btn-special" href="tos.html">Read Full</a>
+        </div>
+      </section>
+
+      <section id="reviews" class="section reviews-section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Client Reviews</span>
+          <h2>Trusted Feedback</h2>
+        </div>
+        <div class="reviews-slider" aria-label="Client reviews slider">
+          <div class="reviews-track" id="reviews-track"></div>
+        </div>
+      </section>
+
+      <section id="contact" class="section contact-section" data-section>
+        <div class="section-heading">
+          <span class="eyebrow">Contact Me</span>
+          <h2>Keep In Touch!</h2>
+          <h3>phongkorea389@gmail.com</h3>
+        </div>
+        <div class="contact-grid" id="contact-grid"></div>
+      </section>
+    </main>
+
+    <nav class="bottom-tabs" aria-label="Portfolio navigation">
+      <a href="#about" class="tab-link active">About</a>
+      <a href="#skills" class="tab-link">Skills</a>
+      <a href="#projects" class="tab-link">Projects</a>
+      <a href="#showcases" class="tab-link">Showcases</a>
+      <a href="#prices" class="tab-link">Prices</a>
+      <a href="#tos" class="tab-link">ToS</a>
+      <a href="#reviews" class="tab-link">Feedbacks</a>
+      <a href="#contact" class="tab-link tab-special">Contact Me</a>
+    </nav>
+
+    <div class="modal" id="code-modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal></div>
+      <article class="modal-card glass-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <button class="modal-close" type="button" data-close-modal aria-label="Close">x</button>
+        <h3 id="modal-title"></h3>
+        <p id="modal-description"></p>
+        <pre><code id="modal-code"></code></pre>
+      </article>
+    </div>
+
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
