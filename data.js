@@ -4,24 +4,6 @@ window.portfolioData = {
     logo: "assets/images/logo_nobg.png",
     heroImage: "assets/images/logo_nobg.png",
   },
-  sourceSamples: [
-    {
-      title: "Servers",
-      type: "ModuleScript",
-      image: "assets/images/apps/vscode.png",
-      description: "Profile-safe item mutation with signals and compact validation.",
-      code:
-        "local InventoryService = {}\n\nfunction InventoryService:AddItem(player, itemId, amount)\n    local profile = self.Profiles[player]\n    if not profile or amount <= 0 then return false end\n\n    profile.Data.Inventory[itemId] = (profile.Data.Inventory[itemId] or 0) + amount\n    self.ItemAdded:Fire(player, itemId, amount)\n    return true\nend\n\nreturn InventoryService",
-    },
-    {
-      title: "Ability Controller",
-      type: "Client Controller",
-      image: "",
-      description: "Input-gated client logic with cooldown feedback and server validation.",
-      code:
-        "local AbilityController = {}\n\nfunction AbilityController:Cast(slot)\n    if self.Cooldowns:IsLocked(slot) then return end\n\n    self.Cooldowns:Lock(slot)\n    self.Remotes.CastAbility:FireServer(slot, self.Mouse.Hit.Position)\n    self.UI:PulseSlot(slot)\nend\n\nreturn AbilityController",
-    },
-  ],
   tools: [
     { name: "Visual Studio Code", icon: "assets/images/apps/vscode.png" },
     { name: "Blender", icon: "assets/images/apps/blender.png" },
@@ -30,11 +12,43 @@ window.portfolioData = {
     { name: "Rojo", icon: "assets/images/socials/rojo.png" },
     { name: "Roblox Studio", icon: "assets/images/apps/roblox_studio.png" },
   ],
+  skillMedia: [
+    {
+      title: "Preloader",
+      type: "image",
+      src: "assets/images/works/preloader/thumbnail.png",
+      thumbnail: "assets/images/socials/github.png",
+      description: "A LocalScript that helps load game assets.",
+      markdown: "",
+      markdownSrc: "assets/images/works/preloader/README-Preloader.md",
+    },
+    {
+      title: "Servers",
+      type: "image",
+      src: "assets/images/works/servers/servers-repo.png",
+      thumbnail: "assets/images/socials/github.png",
+      description: "A ModuleScript that helps monitoring all active game servers.",
+      markdown: "",
+      markdownSrc: "assets/images/works/servers/README-Servers.md",
+    },
+    {
+      title: "Startup Plus",
+      type: "image",
+      src: "assets/images/works/startup-plus/thumbnail.png",
+      thumbnail: "assets/images/socials/github.png",
+      description: "A plugin that allows you customize your default startup code.",
+      markdown: "",
+      markdownSrc: "assets/images/works/startup-plus/README-StartupPlus.md",
+    },
+  ],
   projects: [
     {
       title: "Eldforge",
       status: "Work In Progress",
       image: "assets/images/projects/eldforge.png",
+      universeId: "",
+      placeId: "102667004801396",
+      stats: { playing: null, likes: null, favorites: null },
       description: "An RPG game that will have a smooth combat system and provide to players a fun and engaging experience.",
       link: "https://www.roblox.com/games/102667004801396/Eldforge",
     },
@@ -42,6 +56,9 @@ window.portfolioData = {
       title: "Coalition Battlegrounds",
       status: "Released",
       image: "assets/images/projects/coalition_battlegrounds.png",
+      universeId: "",
+      placeId: "17624438086",
+      stats: { playing: 20, likes: 300, favorites: 465 },
       description: "A battlegrounds game where people use their favorite characters and fight. Inspired by Arena of Valor",
       link: "https://www.roblox.com/games/17624438086/Coalition-Battlegrounds",
     },
@@ -49,6 +66,9 @@ window.portfolioData = {
       title: "Brainrot Showdown",
       status: "Closed",
       image: "assets/images/projects/brainrot_showdown.png",
+      universeId: "",
+      placeId: "120101305497557",
+      stats: { playing: null, likes: null, favorites: null },
       description: "A game I was worked on, this game has a smooth combat system and many fun mechanics.",
       link: "https://www.roblox.com/games/120101305497557/Brainrot-Showdown",
     },
@@ -67,6 +87,13 @@ window.portfolioData = {
       description: "Battlegrounds game devlog #2 | Roblox",
       image: "assets/images/socials/youtube.png",
       url: "https://youtu.be/nNE_JNC_g4A?si=4n5lE-7Jxpm5MDZO",
+    },
+    {
+      title: "Devlog #3",
+      platform: "X",
+      description: "Simple UI I made!",
+      image: "assets/images/socials/x_black.png",
+      url: "https://x.com/pdv389/status/2015053858020757613?s=20",
     },
   ],
   prices: [
@@ -97,14 +124,21 @@ window.portfolioData = {
       rating: 5,
       description: "High-quality systems, especially when it comes to complex combat and RPG game. Sometimes play game alots, need my motivation to work well. Great backend system designer.",
     },
-     {
+    {
       name: "Tusdang",
       avatar: "T",
       avatarImage: "assets/images/clients/tusdang.png",
       rating: 5,
       description: "High-quality systems, especially when it comes to complex combat and RPG game. Sometimes play game alots, need my motivation to work well. Great backend system designer.",
     },
-     {
+    {
+      name: "Tusdang",
+      avatar: "T",
+      avatarImage: "assets/images/clients/tusdang.png",
+      rating: 5,
+      description: "High-quality systems, especially when it comes to complex combat and RPG game. Sometimes play game alots, need my motivation to work well. Great backend system designer.",
+    },
+    {
       name: "Tusdang",
       avatar: "T",
       avatarImage: "assets/images/clients/tusdang.png",
@@ -115,7 +149,7 @@ window.portfolioData = {
   contacts: [
     { label: "Roblox", url: "https://www.roblox.com/users/1158620607/profile", icon: "", iconImage: "assets/images/apps/roblox.png" },
     { label: "X", url: "https://x.com/pdv389", icon: "", iconImage: "assets/images/socials/x_black.png" },
-    { label: "Gmail", url: "mailto:phongkorea389@example.com", icon: "", iconImage: "assets/images/socials/gmail.png" },
+    { label: "Gmail", url: "mailto:phongkorea389@gmail.com", icon: "", iconImage: "assets/images/socials/gmail.png" },
     { label: "GitHub", url: "https://github.com/phongEloper", icon: "", iconImage: "assets/images/socials/github.png" },
     { label: "Discord", url: "https://discord.com/users/917338746620358716", icon: "", iconImage: "assets/images/apps/discord.png" },
   ],

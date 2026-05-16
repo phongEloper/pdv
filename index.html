@@ -25,6 +25,16 @@
         <span class="brand-mark">P</span>
         <span>Pdv</span>
       </a>
+      <nav class="bottom-tabs" aria-label="Portfolio navigation">
+        <a href="#about" class="tab-link active">About</a>
+        <a href="#skills" class="tab-link">Skills</a>
+        <a href="#projects" class="tab-link">Projects</a>
+        <a href="#showcases" class="tab-link">Showcases</a>
+        <a href="#prices" class="tab-link">Prices</a>
+        <a href="#tos" class="tab-link">ToS</a>
+        <a href="#reviews" class="tab-link">Feedbacks</a>
+        <a href="#contact" class="tab-link tab-special">Contact Me</a>
+      </nav>
       <div class="header-actions">
         <span class="availability-dot"></span>
         <span id="header-status">Available</span>
@@ -65,7 +75,7 @@
         <div class="skills-layout">
           <div class="code-gallery" id="code-gallery"></div>
           <div class="stack-panel glass-panel">
-            <h3>Workflow Tools</h3>
+            <h3>Skills</h3>
             <div class="tool-grid" id="tool-grid"></div>
           </div>
         </div>
@@ -107,7 +117,7 @@
               agreed before production. Read the full terms before placing a commission.
             </p>
           </div>
-          <a class="btn btn-special" href="tos.html">Read Full</a>
+          <a class="btn btn-special" href="tos.html">Read Full →</a>
         </div>
       </section>
 
@@ -131,24 +141,14 @@
       </section>
     </main>
 
-    <nav class="bottom-tabs" aria-label="Portfolio navigation">
-      <a href="#about" class="tab-link active">About</a>
-      <a href="#skills" class="tab-link">Skills</a>
-      <a href="#projects" class="tab-link">Projects</a>
-      <a href="#showcases" class="tab-link">Showcases</a>
-      <a href="#prices" class="tab-link">Prices</a>
-      <a href="#tos" class="tab-link">ToS</a>
-      <a href="#reviews" class="tab-link">Feedbacks</a>
-      <a href="#contact" class="tab-link tab-special">Contact Me</a>
-    </nav>
-
     <div class="modal" id="code-modal" aria-hidden="true">
       <div class="modal-backdrop" data-close-modal></div>
       <article class="modal-card glass-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <button class="modal-close" type="button" data-close-modal aria-label="Close">x</button>
         <h3 id="modal-title"></h3>
         <p id="modal-description"></p>
-        <pre><code id="modal-code"></code></pre>
+        <div class="modal-media" id="modal-media"></div>
+        <div class="modal-markdown" id="modal-markdown"></div>
       </article>
     </div>
 

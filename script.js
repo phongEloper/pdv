@@ -8,6 +8,152 @@ function imageOrFallback(src, alt, fallback) {
   return `<img src="${src}" alt="${alt}" loading="lazy" />`;
 }
 
+function renderMediaPreview(item) {
+  if (!item.src) {
+    if (item.markdown || item.markdownSrc) return "";
+    return `
+      <div class="media-placeholder">
+        <strong>${item.type}</strong>
+        <span>Add a file path or URL in data.js to preview this ${item.type}.</span>
+      </div>
+    `;
+  }
+
+  if (item.type === "video") {
+    return `<video src="${item.src}" controls playsinline poster="${item.thumbnail || ""}"></video>`;
+  }
+
+  return `<img src="${item.src}" alt="${item.title}" loading="lazy" />`;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function renderInlineMarkdown(value) {
+  const linkPattern = /\[([^\]]+)\]\((<[^>]+>|[^)]+)\)/g;
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+    .replace(linkPattern, (_match, text, rawHref) => {
+      let href = rawHref.trim().replace(/^<|>$/g, "");
+      if (/^www\./i.test(href)) href = `https://${href}`;
+
+      const safeHref = escapeHtml(href);
+      const safeText = renderInlineMarkdown(text);
+      const external = /^(https?:)?\/\//i.test(href);
+      const target = external ? ' target="_blank" rel="noreferrer"' : "";
+      return `<a href="${safeHref}"${target}>${safeText}</a>`;
+    });
+}
+
+function renderMarkdown(markdown) {
+  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+  const html = [];
+  let inCode = false;
+  let codeLines = [];
+  let inList = false;
+
+  function closeList() {
+    if (!inList) return;
+    html.push("</ul>");
+    inList = false;
+  }
+
+  lines.forEach((line) => {
+    if (line.trim().startsWith("```")) {
+      if (inCode) {
+        html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+        codeLines = [];
+        inCode = false;
+      } else {
+        closeList();
+        inCode = true;
+      }
+      return;
+    }
+
+    if (inCode) {
+      codeLines.push(line);
+      return;
+    }
+
+    if (!line.trim()) {
+      closeList();
+      return;
+    }
+
+    const heading = line.match(/^(#{1,3})\s+(.+)$/);
+    if (heading) {
+      closeList();
+      const level = heading[1].length + 2;
+      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
+      return;
+    }
+
+    const listItem = line.match(/^\s*[-*]\s+(.+)$/);
+    if (listItem) {
+      if (!inList) {
+        html.push("<ul>");
+        inList = true;
+      }
+      html.push(`<li>${renderInlineMarkdown(listItem[1])}</li>`);
+      return;
+    }
+
+    const quote = line.match(/^>\s+(.+)$/);
+    if (quote) {
+      closeList();
+      html.push(`<blockquote>${renderInlineMarkdown(quote[1])}</blockquote>`);
+      return;
+    }
+
+    closeList();
+    html.push(`<p>${renderInlineMarkdown(line)}</p>`);
+  });
+
+  closeList();
+  if (inCode) html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
+  return html.join("");
+}
+
+async function getMarkdownDetails(item) {
+  if (item.markdown) return item.markdown;
+  if (!item.markdownSrc) return "";
+
+  const response = await fetch(item.markdownSrc);
+  if (!response.ok) throw new Error(`Unable to load markdown: ${item.markdownSrc}`);
+  return response.text();
+}
+
+function formatStat(value) {
+  if (value === null || value === undefined || value === "") return "...";
+  return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value));
+}
+
+function projectStatsMarkup(project, index) {
+  const stats = project.stats || {};
+  return `
+    <div class="project-stats" data-project-stats="${index}">
+      <span><strong data-stat="playing">${formatStat(stats.playing)}</strong><small>Playing</small></span>
+      <span><strong data-stat="likes">${formatStat(stats.likes)}</strong><small>Likes</small></span>
+      <span><strong data-stat="favorites">${formatStat(stats.favorites)}</strong><small>Favourites</small></span>
+    </div>
+  `;
+}
+
+function getPlaceId(project) {
+  if (project.placeId) return String(project.placeId);
+  const match = project.link?.match(/\/games\/(\d+)/);
+  return match?.[1] || "";
+}
+
 function renderData() {
   const availability = data.available ? "Available" : "Unavailable";
   $("#header-status").textContent = availability;
@@ -23,24 +169,25 @@ function renderData() {
       <span class="folder-paper paper-two"></span>
       <span class="folder-front">
         <span class="folder-tab"></span>
-          <strong>Workflow Tools</strong>
-          <small>Click to list</small>
+          <strong>Works</strong>
+          <small>Click to view my works</small>
       </span>
     </button>
     <div class="code-cards">
-      ${data.tools
+      ${data.skillMedia
         .map(
-          (tool) => `
-            <article class="code-card glass-panel tool-card">
-              <div class="code-card-top">
-                <span>${tool.name}</span>
-              </div>
+          (item, index) => `
+            <button class="code-card glass-panel skill-media-card" type="button" data-skill-index="${index}">
               <div class="code-visual" aria-hidden="true">
-                ${tool.icon ? `<img src="${tool.icon}" alt="${tool.name}" loading="lazy" />` : "<span></span>"}
+                ${
+                  item.thumbnail || item.src
+                    ? `<img src="${item.thumbnail || item.src}" alt="" loading="lazy" />`
+                    : "<i></i><i></i><i></i><i></i><i></i>"
+                }
               </div>
-              <strong>${tool.name}</strong>
-              <small>Tool in workflow</small>
-            </article>
+              <strong>${item.title}</strong>
+              <small>${item.description}</small>
+            </button>
           `
         )
         .join("")}
@@ -74,6 +221,7 @@ function renderData() {
               <div class="project-stack-copy">
                 <span>${project.status}</span>
                 <strong>${project.title}</strong>
+                ${projectStatsMarkup(project, index)}
               </div>
             </button>
           `
@@ -84,7 +232,7 @@ function renderData() {
       <button class="btn btn-special project-collapse" type="button" data-project-toggle>Collapse Projects</button>
       ${data.projects
         .map(
-          (project) => `
+          (project, index) => `
             <article class="project-card glass-panel">
               <div class="project-art" aria-hidden="true">
                 ${
@@ -97,6 +245,7 @@ function renderData() {
                 <span class="status-pill">${project.status}</span>
                 <h3>${project.title}</h3>
                 <p>${project.description}</p>
+                ${projectStatsMarkup(project, index)}
                 <a class="btn btn-special project-action" href="${project.link}" target="_blank">View Game</a>
               </div>
             </article>
@@ -105,6 +254,9 @@ function renderData() {
         .join("")}
     </div>
   `;
+
+  hydrateProjectStats();
+  window.setInterval(hydrateProjectStats, 120000);
 
   $("#showcase-track").innerHTML = data.showcases
     .map(
@@ -205,9 +357,10 @@ function bindModal() {
   const modal = $("#code-modal");
   const title = $("#modal-title");
   const description = $("#modal-description");
-  const code = $("#modal-code");
+  const media = $("#modal-media");
+  const markdown = $("#modal-markdown");
 
-  $("#code-gallery").addEventListener("click", (event) => {
+  $("#code-gallery").addEventListener("click", async (event) => {
     const gallery = $("#code-gallery");
     const folder = event.target.closest(".skill-folder");
     if (folder) {
@@ -216,27 +369,54 @@ function bindModal() {
       return;
     }
 
-    const card = event.target.closest("[data-code-index]");
-    if (!card) return;
-    if (!gallery.classList.contains("is-open")) {
-      gallery.classList.add("is-open");
-      $(".skill-folder", gallery).setAttribute("aria-expanded", "true");
+    const mediaCard = event.target.closest("[data-skill-index]");
+    if (mediaCard) {
+      if (!gallery.classList.contains("is-open")) {
+        gallery.classList.add("is-open");
+        $(".skill-folder", gallery).setAttribute("aria-expanded", "true");
+        return;
+      }
+
+      const item = data.skillMedia[Number(mediaCard.dataset.skillIndex)];
+      title.textContent = item.title;
+      description.textContent = "";
+      description.hidden = true;
+      media.hidden = false;
+      media.innerHTML = renderMediaPreview(item);
+      markdown.innerHTML = "";
+      markdown.hidden = true;
+      modal.setAttribute("aria-hidden", "false");
+
+      try {
+        const details = await getMarkdownDetails(item);
+        if (details) {
+          markdown.hidden = false;
+          markdown.innerHTML = renderMarkdown(details);
+        }
+      } catch (error) {
+        markdown.hidden = false;
+        markdown.innerHTML = `<p class="markdown-error">Markdown details could not be loaded.</p>`;
+      }
       return;
     }
-
-    const sample = data.sourceSamples[Number(card.dataset.codeIndex)];
-    title.textContent = sample.title;
-    description.textContent = sample.description;
-    code.textContent = sample.code;
-    modal.setAttribute("aria-hidden", "false");
   });
 
   $$("[data-close-modal]").forEach((button) => {
-    button.addEventListener("click", () => modal.setAttribute("aria-hidden", "true"));
+    button.addEventListener("click", () => {
+      modal.setAttribute("aria-hidden", "true");
+      media.innerHTML = "";
+      markdown.innerHTML = "";
+      description.hidden = false;
+    });
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") modal.setAttribute("aria-hidden", "true");
+    if (event.key === "Escape") {
+      modal.setAttribute("aria-hidden", "true");
+      media.innerHTML = "";
+      markdown.innerHTML = "";
+      description.hidden = false;
+    }
   });
 }
 
@@ -261,24 +441,114 @@ function bindProjects() {
   });
 }
 
+async function getUniverseId(project) {
+  if (project.universeId) return String(project.universeId);
+
+  const placeId = getPlaceId(project);
+  if (!placeId) return "";
+
+  const response = await fetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
+  if (!response.ok) throw new Error(`Universe lookup failed for place ${placeId}`);
+  const payload = await response.json();
+  project.universeId = String(payload.universeId || payload.UniverseId || "");
+  return project.universeId;
+}
+
+async function hydrateProjectStats() {
+  const projectsWithUniverse = await Promise.all(
+    data.projects.map(async (project, index) => {
+      try {
+        const universeId = await getUniverseId(project);
+        return universeId ? { project, index, universeId } : null;
+      } catch (error) {
+        return null;
+      }
+    })
+  );
+
+  const validProjects = projectsWithUniverse.filter(Boolean);
+  if (!validProjects.length) return;
+
+  const universeIds = validProjects.map((item) => item.universeId);
+
+  try {
+    const [gamesResponse, votesResponse, favoritesResults] = await Promise.all([
+      fetch(`https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`),
+      fetch(`https://games.roblox.com/v1/games/votes?universeIds=${universeIds.join(",")}`),
+      Promise.all(
+        validProjects.map((item) =>
+          fetch(`https://games.roblox.com/v1/games/${item.universeId}/favorites/count`)
+            .then((response) => (response.ok ? response.json() : null))
+            .catch(() => null)
+        )
+      ),
+    ]);
+
+    const gamesPayload = gamesResponse.ok ? await gamesResponse.json() : { data: [] };
+    const votesPayload = votesResponse.ok ? await votesResponse.json() : { data: [] };
+
+    validProjects.forEach((item, favoriteIndex) => {
+      const game = gamesPayload.data?.find((entry) => String(entry.id) === item.universeId);
+      const vote = votesPayload.data?.find((entry) => String(entry.id) === item.universeId);
+      const favorites = favoritesResults[favoriteIndex]?.favoritesCount ?? favoritesResults[favoriteIndex]?.count;
+
+      item.project.stats = {
+        playing: game?.playing ?? item.project.stats?.playing ?? null,
+        likes: vote?.upVotes ?? game?.upVotes ?? item.project.stats?.likes ?? null,
+        favorites: favorites ?? game?.favoritedCount ?? item.project.stats?.favorites ?? null,
+      };
+
+      updateProjectStats(item.index, item.project.stats);
+    });
+  } catch (error) {
+    data.projects.forEach((project, index) => updateProjectStats(index, project.stats || {}));
+  }
+}
+
+function updateProjectStats(index, stats) {
+  $$(`[data-project-stats="${index}"]`).forEach((container) => {
+    const playing = container.querySelector('[data-stat="playing"]');
+    const likes = container.querySelector('[data-stat="likes"]');
+    const favorites = container.querySelector('[data-stat="favorites"]');
+    if (playing) playing.textContent = formatStat(stats.playing);
+    if (likes) likes.textContent = formatStat(stats.likes);
+    if (favorites) favorites.textContent = formatStat(stats.favorites);
+  });
+}
+
 function bindTabs() {
   const sections = $$("[data-section]");
   const links = $$(".tab-link");
-  const observer = new IntersectionObserver(
-    (entries) => {
-      const active = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-      if (!active) return;
+  let frame = null;
 
-      links.forEach((link) => {
-        link.classList.toggle("active", link.getAttribute("href") === `#${active.target.id}`);
-      });
-    },
-    { threshold: [0.35, 0.55] }
-  );
+  function setActive() {
+    const headerHeight = $(".site-header")?.offsetHeight || 0;
+    const marker = headerHeight + 42;
+    let activeSection = sections[0];
 
-  sections.forEach((section) => observer.observe(section));
+    sections.forEach((section) => {
+      if (section.getBoundingClientRect().top <= marker) {
+        activeSection = section;
+      }
+    });
+
+    const activeHref = `#${activeSection.id}`;
+    links.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === activeHref));
+
+    const activeLink = links.find((link) => link.getAttribute("href") === activeHref);
+    activeLink?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+    frame = null;
+  }
+
+  function requestSetActive() {
+    if (frame) return;
+    frame = requestAnimationFrame(setActive);
+  }
+
+  window.addEventListener("scroll", requestSetActive, { passive: true });
+  window.addEventListener("resize", requestSetActive);
+  links.forEach((link) => link.addEventListener("click", () => window.setTimeout(setActive, 350)));
+  setActive();
 }
 
 function bindScrollReveal() {
@@ -372,10 +642,10 @@ function enableSmoothScrolling() {
     if (!target) return;
     event.preventDefault();
 
-    if ("scrollBehavior" in document.documentElement.style) {
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
-    } else if ("scrollTo" in window) {
-      const top = target.getBoundingClientRect().top + window.pageYOffset;
+    const headerOffset = ($(".site-header")?.offsetHeight || 0) + 24;
+    const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+
+    if ("scrollTo" in window) {
       window.scrollTo({ top, behavior: "smooth" });
     } else {
       target.scrollIntoView();
