@@ -44,32 +44,32 @@ window.portfolioData = {
   projects: [
     {
       title: "Eldforge",
-      status: "Work In Progress",
       image: "assets/images/projects/eldforge.png",
       universeId: "",
       placeId: "102667004801396",
       stats: { playing: null, likes: null, favorites: null },
-      description: "An RPG game that will have a smooth combat system and provide to players a fun and engaging experience.",
+      studio: "Eldforge Game",
+      description: "An open world RPG & survival RPG.",
       link: "https://www.roblox.com/games/102667004801396/Eldforge",
     },
     {
-      title: "Coalition Battlegrounds",
-      status: "Released",
+      title: "Coalition Battlegrounds [Alpha]",
       image: "assets/images/projects/coalition_battlegrounds.png",
       universeId: "",
       placeId: "17624438086",
       stats: { playing: 20, likes: 300, favorites: 465 },
-      description: "A battlegrounds game where people use their favorite characters and fight. Inspired by Arena of Valor",
+      studio: "Liberal Art",
+      description: "A battlegrounds game where people use their favourite characters and fight!",
       link: "https://www.roblox.com/games/17624438086/Coalition-Battlegrounds",
     },
     {
-      title: "Brainrot Showdown",
-      status: "Closed",
+      title: "Brainrot: Showdown",
       image: "assets/images/projects/brainrot_showdown.png",
       universeId: "",
       placeId: "120101305497557",
       stats: { playing: null, likes: null, favorites: null },
-      description: "A game I was worked on, this game has a smooth combat system and many fun mechanics.",
+      studio: "Blue Tortuga",
+      description: "A fun battlegrounds game where people use their favourite brainrot characters and fight!",
       link: "https://www.roblox.com/games/120101305497557/Brainrot-Showdown",
     },
   ],
@@ -116,6 +116,33 @@ window.portfolioData = {
       features: ["Easy On The Eyes & Eye-catching", "Easy To Edit", "Delivery Fast!"],
     },
   ],
+  workSteps: [
+    {
+      phase: "Step 01",
+      title: "Scope Of Work Discussion",
+      description: "You will send me the requirements and details of the system you want, then we will discuss and finalize the scope and timeline of the project.",
+    },
+    {
+      phase: "Step 02",
+      title: "Estimate Price & Start",
+      description: "You must pay for 30-50% of the total price as a deposit, then I will start working. The remaining amount will be paid after the project is completed and delivered.",
+    },
+    {
+      phase: "Step 03",
+      title: "Development & Progress Previews",
+      description: "I will develop the system according to the requirements, and provide you with regular updates and previews of the progress. You can give feedback and request changes during this phase.",
+    },
+    {
+      phase: "Step 04",
+      title: "Final Payment And Delivery",
+      description: "You must pay the remaining amount after the project is completed. I will provide you with the final product, and you can review it and request any final adjustments if needed.",
+    },
+    {
+      phase: "Final Step",
+      title: "Short support period",
+      description: "If you encounter any issues or need help with the system after delivery, I will provide support for a short period of time to ensure everything is working well and to your satisfaction.",
+    },
+  ],
   reviews: [
     {
       name: "Tusdang",
@@ -147,7 +174,7 @@ window.portfolioData = {
     },
   ],
   contacts: [
-    { label: "Roblox", url: "https://www.roblox.com/users/1158620607/profile", icon: "", iconImage: "assets/images/apps/roblox.png" },
+    { label: "Roblox", url: "https://www.roblox.com/users/1158620607/profile", icon: "", iconImage: "assets/images/apps/roblox_black.png" },
     { label: "X", url: "https://x.com/pdv389", icon: "", iconImage: "assets/images/socials/x_black.png" },
     { label: "Gmail", url: "mailto:phongkorea389@gmail.com", icon: "", iconImage: "assets/images/socials/gmail.png" },
     { label: "GitHub", url: "https://github.com/phongEloper", icon: "", iconImage: "assets/images/socials/github.png" },

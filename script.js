@@ -219,9 +219,8 @@ function renderData() {
                 }
               </div>
               <div class="project-stack-copy">
-                <span>${project.status}</span>
+                <span>${project.studio}</span>
                 <strong>${project.title}</strong>
-                ${projectStatsMarkup(project, index)}
               </div>
             </button>
           `
@@ -242,8 +241,8 @@ function renderData() {
                 }
               </div>
               <div class="project-card-body">
-                <span class="status-pill">${project.status}</span>
                 <h3>${project.title}</h3>
+                <p>By <strong>@${project.studio}</strong></p>
                 <p>${project.description}</p>
                 ${projectStatsMarkup(project, index)}
                 <a class="btn btn-special project-action" href="${project.link}" target="_blank">View Game</a>
@@ -293,14 +292,36 @@ function renderData() {
     .join("");
 
   renderPricePanel(0);
+  renderWorkFlow();
 
   $("#contact-grid").innerHTML = data.contacts
     .map(
       (contact, index) => `
-        <a class="contact-button" href="${contact.url}" target="_blank" rel="noreferrer">
-          <span>${imageOrFallback(contact.iconImage, `${contact.label} icon`, contact.icon)}</span>
-          ${contact.label}
+        <a class="contact-button" href="${contact.url}" target="_blank" rel="noreferrer" aria-label="${contact.label}">
+          <span class="contact-icon">${imageOrFallback(contact.iconImage, `${contact.label} icon`, contact.icon)}</span>
+          <span class="contact-label">${contact.label}</span>
         </a>
+      `
+    )
+    .join("");
+}
+
+function renderWorkFlow() {
+  const steps = data.workSteps || [];
+  const stepsContainer = $("#work-steps");
+  if (!stepsContainer) return;
+
+  stepsContainer.innerHTML = steps
+    .map(
+      (step, index) => `
+        <article class="work-step ${index % 2 ? "is-right" : "is-left"}" data-work-step="${index}">
+          <span class="work-node" aria-hidden="true">${String(index + 1).padStart(2, "0")}</span>
+          <div class="work-card">
+            <span>${step.phase}</span>
+            <h3>${step.title}</h3>
+            <p>${step.description}</p>
+          </div>
+        </article>
       `
     )
     .join("");
@@ -329,7 +350,6 @@ function renderPricePanel(activeIndex) {
     </div>
     <article class="price-system">
       <div class="price-main">
-        <span>Selected System</span>
         <h3>${activePlan.name}</h3>
         <p>${activePlan.description}</p>
       </div>
@@ -425,6 +445,8 @@ function bindPrices() {
     const tab = event.target.closest("[data-price-index]");
     if (!tab) return;
     renderPricePanel(Number(tab.dataset.priceIndex));
+    bindMagneticButtons();
+    bindCardTilt();
     bindScrollReveal();
   });
 }
@@ -551,9 +573,108 @@ function bindTabs() {
   setActive();
 }
 
+function bindWorkFlowScroll() {
+  const flow = $("#work-flow");
+  if (!flow) return;
+
+  const steps = $$(".work-step", flow);
+  let frame = null;
+
+  function update() {
+    const rect = flow.getBoundingClientRect();
+    const start = window.innerHeight * 0.72;
+    const end = -rect.height * 0.18;
+    const range = start - end || 1;
+    const progress = Math.min(Math.max((start - rect.top) / range, 0), 1);
+    const activeIndex = Math.min(steps.length - 1, Math.floor(progress * steps.length));
+
+    flow.style.setProperty("--work-progress", `${progress * 100}%`);
+    steps.forEach((step, index) => {
+      step.classList.toggle("is-active", index <= activeIndex);
+    });
+    frame = null;
+  }
+
+  function requestUpdate() {
+    if (frame) return;
+    frame = requestAnimationFrame(update);
+  }
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
+  update();
+}
+
+function bindScrollProgress() {
+  const header = $(".site-header");
+  if (!header) return;
+
+  let frame = null;
+
+  function update() {
+    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+    const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+    header.style.setProperty("--page-progress", String(Math.min(Math.max(progress, 0), 1)));
+    frame = null;
+  }
+
+  function requestUpdate() {
+    if (frame) return;
+    frame = requestAnimationFrame(update);
+  }
+
+  window.addEventListener("scroll", requestUpdate, { passive: true });
+  window.addEventListener("resize", requestUpdate);
+  update();
+}
+
+function bindMagneticButtons() {
+  $$(".btn-special, .tab-special").forEach((button) => {
+    if (button.dataset.magneticBound) return;
+    button.dataset.magneticBound = "true";
+
+    button.addEventListener("pointermove", (event) => {
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      const rect = button.getBoundingClientRect();
+      const x = event.clientX - rect.left - rect.width / 2;
+      const y = event.clientY - rect.top - rect.height / 2;
+      button.style.setProperty("--magnet-x", `${Math.max(Math.min(x * 0.16, 8), -8)}px`);
+      button.style.setProperty("--magnet-y", `${Math.max(Math.min(y * 0.22, 7), -7)}px`);
+    });
+
+    button.addEventListener("pointerleave", () => {
+      button.style.setProperty("--magnet-x", "0px");
+      button.style.setProperty("--magnet-y", "0px");
+    });
+  });
+}
+
+function bindCardTilt() {
+  const cards = $$(".project-card, .price-system, .review-card");
+
+  cards.forEach((card) => {
+    if (card.dataset.tiltBound) return;
+    card.dataset.tiltBound = "true";
+
+    card.addEventListener("pointermove", (event) => {
+      if (window.matchMedia("(pointer: coarse)").matches) return;
+      const rect = card.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width - 0.5;
+      const y = (event.clientY - rect.top) / rect.height - 0.5;
+      card.style.setProperty("--tilt-x", `${Math.max(Math.min(-y * 7, 5), -5)}deg`);
+      card.style.setProperty("--tilt-y", `${Math.max(Math.min(x * 8, 6), -6)}deg`);
+    });
+
+    card.addEventListener("pointerleave", () => {
+      card.style.setProperty("--tilt-x", "0deg");
+      card.style.setProperty("--tilt-y", "0deg");
+    });
+  });
+}
+
 function bindScrollReveal() {
   const revealItems = $$(
-    "main .glass-panel, main .code-card, main .skill-folder, main .tool-chip, main .price-system, main .project-stack-card, main .contact-button"
+    "main .glass-panel, main .code-card, main .skill-folder, main .tool-chip, main .price-system, main .contact-button"
   );
 
   revealItems.forEach((item, index) => {
@@ -628,6 +749,10 @@ bindModal();
 bindPrices();
 bindProjects();
 bindTabs();
+bindWorkFlowScroll();
+bindScrollProgress();
+bindMagneticButtons();
+bindCardTilt();
 bindScrollReveal();
 initScene();
 
