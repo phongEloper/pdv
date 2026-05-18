@@ -107,13 +107,13 @@ window.portfolioData = {
       name: "Quest System",
       price: "$16+",
       description: "Backend system provides the source easy to use and scale.",
-      features: ["Server & Client Logic", "Complete Typing Support", "Easy To Use", "Scalable Modules"],
+      features: ["Server & Client Logic", "Autocomplete Support", "Easy To Use & Edit"],
     },
     {
       name: "UI/UX Animations",
       price: "$10+",
       description: "Frontend animations that make the UI more alive and engaging.",
-      features: ["Easy On The Eyes & Eye-catching", "Easy To Edit", "Delivery Fast!"],
+      features: ["Smooth Animations", "Eye-catching", "Delivery Fast!"],
     },
   ],
   workSteps: [
@@ -124,8 +124,8 @@ window.portfolioData = {
     },
     {
       phase: "Step 02",
-      title: "Estimate Price & Start",
-      description: "You must pay for 30-50% of the total price as a deposit, then I will start working. The remaining amount will be paid after the project is completed and delivered.",
+      title: "Project Estimate & Start",
+      description: "You must pay 30-50% of the total price as a deposit, then I will start working. The remaining amount will be paid after the project is completed and delivered.",
     },
     {
       phase: "Step 03",
@@ -134,13 +134,13 @@ window.portfolioData = {
     },
     {
       phase: "Step 04",
-      title: "Final Payment And Delivery",
+      title: "Final Payment & Delivery",
       description: "You must pay the remaining amount after the project is completed. I will provide you with the final product, and you can review it and request any final adjustments if needed.",
     },
     {
       phase: "Final Step",
-      title: "Short support period",
-      description: "If you encounter any issues or need help with the system after delivery, I will provide support for a short period of time to ensure everything is working well and to your satisfaction.",
+      title: "Limited Support Period",
+      description: "If you encounter any issues or need assistance after delivery, I will provide limited support for a short period to ensure everything is functioning properly.",
     },
   ],
   reviews: [
