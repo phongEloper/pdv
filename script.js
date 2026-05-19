@@ -218,10 +218,6 @@ function renderData() {
                     : "<span></span><span></span><span></span>"
                 }
               </div>
-              <div class="project-stack-copy">
-                <span>${project.studio}</span>
-                <strong>${project.title}</strong>
-              </div>
             </button>
           `
         )

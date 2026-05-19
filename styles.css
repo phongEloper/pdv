@@ -267,11 +267,11 @@ main {
 .eyebrow {
   display: inline-flex;
   margin-bottom: 14px;
+  margin-top: 14px;
   color: #2f5b73;
-  font-size: 0.76rem;
+  font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0;
-  text-transform: uppercase;
 }
 
 h1,

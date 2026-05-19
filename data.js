@@ -99,7 +99,7 @@ window.portfolioData = {
   prices: [
     {
       name: "Combat Framework",
-      price: "$59+",
+      price: "$95+",
       description: "A backend system provides smooth combat, and ensure the gameplay is fun and engaging.",
       features: ["Hitbox", "Ragdoll", "Stun", "Cooldown", "Knockback", "Projectile", "And More!"],
     },
