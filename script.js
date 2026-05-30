@@ -154,6 +154,61 @@ function getPlaceId(project) {
   return match?.[1] || "";
 }
 
+function getYouTubeId(url = "") {
+  const patterns = [
+    /youtu\.be\/([^?&/]+)/i,
+    /youtube\.com\/watch\?v=([^?&/]+)/i,
+    /youtube\.com\/shorts\/([^?&/]+)/i,
+    /youtube\.com\/embed\/([^?&/]+)/i,
+  ];
+  const match = patterns.map((pattern) => url.match(pattern)).find(Boolean);
+  return match?.[1] || "";
+}
+
+function getStreamableId(url = "") {
+  const match = url.match(/streamable\.com\/(?:e\/)?([^?&/]+)/i);
+  return match?.[1] || "";
+}
+
+function getShowcasePlatform(item) {
+  const platform = (item.platform || "").toLowerCase();
+  const url = item.url || item.src || "";
+  if (platform.includes("youtube") || /youtu\.?be|youtube\.com/i.test(url)) return "YouTube";
+  if (platform === "x" || platform.includes("twitter") || /x\.com|twitter\.com/i.test(url)) return "X";
+  if (platform.includes("streamable") || /streamable\.com/i.test(url)) return "Streamable";
+  return item.platform || "Video";
+}
+
+function getShowcaseThumbnail(item) {
+  const platform = getShowcasePlatform(item);
+  const source = item.src || item.url || "";
+  const isVideoFile = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(source);
+
+  if (item.thumbnail) {
+    return `<img src="${item.thumbnail}" alt="${item.title} thumbnail" loading="lazy" />`;
+  }
+
+  const youtubeId = getYouTubeId(source);
+  if (youtubeId) {
+    return `<img src="https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg" alt="${item.title} thumbnail" loading="lazy" />`;
+  }
+
+  const streamableId = getStreamableId(source);
+  if (streamableId) {
+    return `<img src="https://cdn-cf-east.streamable.com/image/${streamableId}.jpg" alt="${item.title} thumbnail" loading="lazy" />`;
+  }
+
+  if (isVideoFile) {
+    return `<video src="${source}" muted playsinline preload="metadata" poster="${item.image || ""}"></video>`;
+  }
+
+  if (item.image) {
+    return `<img src="${item.image}" alt="${platform} thumbnail" loading="lazy" />`;
+  }
+
+  return `<span class="showcase-placeholder">${platform}</span>`;
+}
+
 function renderData() {
   const availability = data.available ? "Available" : "Unavailable";
   $("#header-status").textContent = availability;
@@ -161,18 +216,7 @@ function renderData() {
   document.body.classList.toggle("is-unavailable", !data.available);
   $(".brand-mark").innerHTML = imageOrFallback(data.brand.logo, "Pdv logo", "P");
   $(".avatar-core").innerHTML = imageOrFallback(data.brand.heroImage, "Pdv brand image", "Pdv");
-  // Render skill-folder with hover preview of tools and an expandable vertical list on click
   $("#code-gallery").innerHTML = `
-    <button class="skill-folder" type="button" aria-expanded="false">
-      <span class="folder-back"></span>
-      <span class="folder-paper paper-one"></span>
-      <span class="folder-paper paper-two"></span>
-      <span class="folder-front">
-        <span class="folder-tab"></span>
-          <strong>Works</strong>
-          <small>Click to view my works</small>
-      </span>
-    </button>
     <div class="code-cards">
       ${data.skillMedia
         .map(
@@ -256,11 +300,10 @@ function renderData() {
   $("#showcase-track").innerHTML = data.showcases
     .map(
       (item) => `
-        <a class="showcase-link glass-panel" href="${item.url}" target="_blank" rel="noreferrer">
-          <span class="showcase-art" aria-hidden="true">${imageOrFallback(item.image, "", "<span></span>")}</span>
-          <span class="showcase-copy">
-            <strong>${item.title}</strong>
-            <small>${item.platform} - ${item.description}</small>
+        <a class="showcase-link" href="${item.url || item.src}" target="_blank" rel="noreferrer" data-platform="${getShowcasePlatform(item)}">
+          <span class="showcase-art" aria-hidden="true">
+            ${getShowcaseThumbnail(item)}
+            <span class="play-badge"></span>
           </span>
         </a>
       `
@@ -377,22 +420,8 @@ function bindModal() {
   const markdown = $("#modal-markdown");
 
   $("#code-gallery").addEventListener("click", async (event) => {
-    const gallery = $("#code-gallery");
-    const folder = event.target.closest(".skill-folder");
-    if (folder) {
-      gallery.classList.toggle("is-open");
-      folder.setAttribute("aria-expanded", String(gallery.classList.contains("is-open")));
-      return;
-    }
-
     const mediaCard = event.target.closest("[data-skill-index]");
     if (mediaCard) {
-      if (!gallery.classList.contains("is-open")) {
-        gallery.classList.add("is-open");
-        $(".skill-folder", gallery).setAttribute("aria-expanded", "true");
-        return;
-      }
-
       const item = data.skillMedia[Number(mediaCard.dataset.skillIndex)];
       title.textContent = item.title;
       description.textContent = "";
@@ -573,15 +602,14 @@ function bindWorkFlowScroll() {
   const flow = $("#work-flow");
   if (!flow) return;
 
+  const path = $(".work-path", flow);
   const steps = $$(".work-step", flow);
   let frame = null;
 
   function update() {
-    const rect = flow.getBoundingClientRect();
-    const start = window.innerHeight * 0.72;
-    const end = -rect.height * 0.18;
-    const range = start - end || 1;
-    const progress = Math.min(Math.max((start - rect.top) / range, 0), 1);
+    const pathRect = path.getBoundingClientRect();
+    const viewportCenter = window.innerHeight / 2;
+    const progress = Math.min(Math.max((viewportCenter - pathRect.top) / pathRect.height, 0), 1);
     const activeIndex = Math.min(steps.length - 1, Math.floor(progress * steps.length));
 
     flow.style.setProperty("--work-progress", `${progress * 100}%`);
@@ -670,7 +698,7 @@ function bindCardTilt() {
 
 function bindScrollReveal() {
   const revealItems = $$(
-    "main .glass-panel, main .code-card, main .skill-folder, main .tool-chip, main .price-system, main .contact-button"
+    "main .glass-panel, main .code-card, main .tool-chip, main .price-system, main .contact-button"
   );
 
   revealItems.forEach((item, index) => {
@@ -694,6 +722,7 @@ function bindScrollReveal() {
 
 function initScene() {
   const canvas = $("#scene3d");
+  if (!canvas || getComputedStyle(canvas).display === "none") return;
   const context = canvas.getContext("2d");
   const particles = Array.from({ length: 78 }, (_, index) => ({
     angle: (Math.PI * 2 * index) / 78,
