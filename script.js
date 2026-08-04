@@ -212,7 +212,6 @@ function getShowcaseThumbnail(item) {
 function renderData() {
   const availability = data.available ? "Available" : "Unavailable";
   $("#header-status").textContent = availability;
-  $("#profile-status").textContent = availability;
   document.body.classList.toggle("is-unavailable", !data.available);
   $(".brand-mark").innerHTML = imageOrFallback(data.brand.logo, "Pdv logo", "P");
   $(".avatar-core").innerHTML = imageOrFallback(data.brand.heroImage, "Pdv brand image", "Pdv");
@@ -779,6 +778,7 @@ bindScrollProgress();
 bindMagneticButtons();
 bindCardTilt();
 bindScrollReveal();
+
 initScene();
 
 function enableSmoothScrolling() {

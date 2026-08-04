@@ -1,8 +1,8 @@
 window.portfolioData = {
   available: false,
   brand: {
-    logo: "assets/images/logo_nobg.png",
-    heroImage: "assets/images/logo_nobg.png",
+    logo: "assets/images/logos/Black_NoBg.png",
+    heroImage: "assets/images/logos/White_NoBg.png",
   },
   tools: [
     { name: "Visual Studio Code", icon: "assets/images/apps/vscode.png" },
@@ -105,19 +105,19 @@ window.portfolioData = {
   prices: [
     {
       name: "Combat Framework",
-      price: "$95+",
+      price: "~$95",
       description: "A backend system provides smooth combat, and ensure the gameplay is fun and engaging.",
-      features: ["Hitbox", "Ragdoll", "Stun", "Cooldown", "Knockback", "Projectile", "And More!"],
+      features: ["Hitbox", "Ragdoll", "Stun", "Cooldown", "Knockback", "Projectile", "Stamina", "And More!"],
     },
     {
       name: "Quest System",
-      price: "$16+",
+      price: "~$23",
       description: "Backend system provides the source easy to use and scale.",
       features: ["Server & Client Logic", "Autocomplete Support", "Easy To Use & Edit"],
     },
     {
       name: "UI/UX Animations",
-      price: "$10+",
+      price: "~$10",
       description: "Frontend animations that make the UI more alive and engaging.",
       features: ["Smooth Animations", "Eye-catching", "Delivery Fast!"],
     },
@@ -182,7 +182,7 @@ window.portfolioData = {
   contacts: [
     { label: "Roblox", url: "https://www.roblox.com/users/1158620607/profile", icon: "", iconImage: "assets/images/apps/roblox_black.png" },
     { label: "X", url: "https://x.com/pdv389", icon: "", iconImage: "assets/images/socials/x_black.png" },
-    { label: "Gmail", url: "mailto:phongkorea389@gmail.com", icon: "", iconImage: "assets/images/socials/gmail.png" },
+    { label: "Email", url: "mailto:phongkorea389@gmail.com", icon: "", iconImage: "assets/images/socials/gmail.png" },
     { label: "GitHub", url: "https://github.com/phongEloper", icon: "", iconImage: "assets/images/socials/github.png" },
     { label: "Discord", url: "https://discord.com/users/917338746620358716", icon: "", iconImage: "assets/images/apps/discord.png" },
   ],
