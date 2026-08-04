@@ -212,7 +212,7 @@ function getShowcaseThumbnail(item) {
 function renderData() {
   const availability = data.available ? "Available" : "Unavailable";
   $("#header-status").textContent = availability;
-  
+  //Ughh
   document.body.classList.toggle("is-unavailable", !data.available);
   $(".brand-mark").innerHTML = imageOrFallback(data.brand.logo, "Pdv logo", "P");
   $(".avatar-core").innerHTML = imageOrFallback(data.brand.heroImage, "Pdv brand image", "Pdv");
