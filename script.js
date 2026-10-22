@@ -210,10 +210,6 @@ function getShowcaseThumbnail(item) {
 }
 
 function renderData() {
-  const availability = data.available ? "Available" : "Unavailable";
-  $("#header-status").textContent = availability;
-  //Ughh
-  document.body.classList.toggle("is-unavailable", !data.available);
   $(".brand-mark").innerHTML = imageOrFallback(data.brand.logo, "Pdv logo", "P");
   $(".avatar-core").innerHTML = imageOrFallback(data.brand.heroImage, "Pdv brand image", "Pdv");
   $("#code-gallery").innerHTML = `
@@ -431,12 +427,14 @@ function bindModal() {
       markdown.innerHTML = "";
       markdown.hidden = true;
       modal.setAttribute("aria-hidden", "false");
+      modal.querySelector(".modal-card").scrollTop = 0;
 
       try {
         const details = await getMarkdownDetails(item);
         if (details) {
           markdown.hidden = false;
           markdown.innerHTML = renderMarkdown(details);
+          modal.querySelector(".modal-card").scrollTop = 0;
         }
       } catch (error) {
         markdown.hidden = false;
@@ -629,29 +627,6 @@ function bindWorkFlowScroll() {
   update();
 }
 
-function bindScrollProgress() {
-  const header = $(".site-header");
-  if (!header) return;
-
-  let frame = null;
-
-  function update() {
-    const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-    const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
-    header.style.setProperty("--page-progress", String(Math.min(Math.max(progress, 0), 1)));
-    frame = null;
-  }
-
-  function requestUpdate() {
-    if (frame) return;
-    frame = requestAnimationFrame(update);
-  }
-
-  window.addEventListener("scroll", requestUpdate, { passive: true });
-  window.addEventListener("resize", requestUpdate);
-  update();
-}
-
 function bindMagneticButtons() {
   $$(".btn-special, .tab-special").forEach((button) => {
     if (button.dataset.magneticBound) return;
@@ -775,7 +750,6 @@ bindPrices();
 bindProjects();
 bindTabs();
 bindWorkFlowScroll();
-bindScrollProgress();
 bindMagneticButtons();
 bindCardTilt();
 bindScrollReveal();
