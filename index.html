@@ -15,25 +15,35 @@
     <link rel="icon" type="image/x-icon" href="assets/images/logos/White_NoBg.png">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js" defer></script>
   </head>
 
   <body>
     <canvas id="scene3d" aria-hidden="true"></canvas>
 
     <header class="site-header">
-      <a class="brand" href="#about" aria-label="Pdv home">
-        <span class="brand-mark">P</span>
-      </a>
       <nav class="bottom-tabs" aria-label="Portfolio navigation">
-        <a href="#about" class="tab-link active">About</a>
-        <a href="#skills" class="tab-link">Skills</a>
-        <a href="#projects" class="tab-link">Projects</a>
-        <a href="#showcases" class="tab-link">Showcases</a>
-        <a href="#prices" class="tab-link">Prices</a>
-        <a href="#work" class="tab-link">Work Flows</a>
-        <a href="#tos" class="tab-link">ToS</a>
-        <a href="#reviews" class="tab-link">Reviews</a>
-        <a href="#contact" class="tab-link tab-special">Contact Me</a>
+        <a href="#about" class="tab-link active" aria-label="About" title="About">
+          <iconify-icon icon="boxicons:user-filled" aria-hidden="true"></iconify-icon>
+        </a>
+        <a href="#projects" class="tab-link" aria-label="Projects" title="Projects">
+          <iconify-icon icon="dashicons:games" aria-hidden="true"></iconify-icon>
+        </a>
+        <a href="#showcases" class="tab-link" aria-label="Showcases" title="Showcases">
+          <iconify-icon icon="at-icons:file-video" aria-hidden="true"></iconify-icon>
+        </a>
+        <a href="#skills" class="tab-link" aria-label="Skills" title="Skills">
+          <iconify-icon icon="emojione-monotone:hammer-and-wrench" aria-hidden="true"></iconify-icon>
+        </a>
+        <a href="#work" class="tab-link" aria-label="Work Flows" title="Work Flows">
+          <iconify-icon icon="ic:baseline-work" aria-hidden="true"></iconify-icon>
+        </a>
+        <a href="#reviews" class="tab-link" aria-label="Reviews" title="Reviews">
+          <iconify-icon icon="bi:chat-left-fill" aria-hidden="true"></iconify-icon>
+        </a>
+        <a href="#contact" class="tab-link tab-special" aria-label="Contact Me" title="Contact Me">
+          <iconify-icon icon="ic:round-email" aria-hidden="true"></iconify-icon>
+        </a>
       </nav>
     </header>
 
@@ -51,22 +61,8 @@
             Hello, my name is <strong>Pdv</strong>. I'm a full-stack developer with over 4.5 years of experience. I'm also familiar with Git, GitHub, Rojo, Blender, and VS Code to support a professional workflow, whether working independently or as part of a team.
           </p>
           <div class="hero-actions">
-            <a class="btn btn-special" href="#projects">View Projects</a>
+            <a class="btn btn-special" href="#projects"><iconify-icon icon="fa:expand" aria-hidden="true"></iconify-icon><span>View Projects</span></a>
             <a class="btn btn-plain" href="#contact">Contact Me</a>
-          </div>
-        </div>
-      </section>
-
-      <section id="skills" class="section" data-section>
-        <div class="section-heading">
-          <h2>Skills</h2>
-          <span class="eyebrow">My codes & development tools</span>
-        </div>
-        <div class="skills-layout">
-          <div class="code-gallery" id="code-gallery"></div>
-          <div class="stack-panel glass-panel">
-            <h3>Skills</h3>
-            <div class="tool-grid" id="tool-grid"></div>
           </div>
         </div>
       </section>
@@ -86,6 +82,18 @@
         <div class="showcase-track" id="showcase-track"></div>
       </section>
 
+      <section id="skills" class="section" data-section>
+        <div class="section-heading">
+          <h2>Skills</h2>
+          <span class="eyebrow">Development tools</span>
+        </div>
+        <div class="skills-layout">
+          <div class="stack-panel glass-panel">
+            <div class="tool-grid" id="tool-grid"></div>
+          </div>
+        </div>
+      </section>
+
       <section id="prices" class="section" data-section>
         <div class="section-heading">
           <h2>Prices</h2>
@@ -99,28 +107,13 @@
           <h2>Work Flows</h2>
           <span class="eyebrow">The steps I take to work with you</span>
         </div>
-        <div class="work-flow glass-panel" id="work-flow">
+            <div class="work-flow" id="work-flow">
           <div class="work-path" aria-hidden="true">
             <span class="work-path-base"></span>
             <span class="work-path-progress"></span>
             <span class="work-marker"></span>
           </div>
           <div class="work-steps" id="work-steps"></div>
-        </div>
-      </section>
-
-      <section id="tos" class="section" data-section>
-        <div class="section-heading">
-          <h2>Terms Of Service</h2>
-        </div>
-        <div class="tos-preview glass-panel">
-          <div>
-            <p>
-              Payments, revisions, delivery, ownership, and refund terms are
-              agreed before production. Read the full terms before placing a commission.
-            </p>
-          </div>
-          <a class="btn btn-special" href="tos.html">Read Full →</a>
         </div>
       </section>
 
@@ -134,25 +127,16 @@
         </div>
       </section>
 
-      <section id="contact" class="section contact-section" data-section>
-        <div class="section-heading">
-          <h2>Keep In Touch!</h2>
-          <span class="eyebrow">phongkorea389@gmail.com</span>
-        </div>
-        <div class="contact-grid" id="contact-grid"></div>
-      </section>
     </main>
 
-    <div class="modal" id="code-modal" aria-hidden="true">
-      <div class="modal-backdrop" data-close-modal></div>
-      <article class="modal-card glass-panel" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <button class="modal-close" type="button" data-close-modal aria-label="Close">x</button>
-        <h3 id="modal-title"></h3>
-        <p id="modal-description"></p>
-        <div class="modal-media" id="modal-media"></div>
-        <div class="modal-markdown" id="modal-markdown"></div>
-      </article>
-    </div>
+    <footer id="contact" class="section site-footer contact-section" data-section>
+      <div class="section-heading">
+        <h2>Contact Me</h2>
+        <span class="eyebrow">phongkorea389@gmail.com</span>
+      </div>
+      <div class="contact-grid" id="contact-grid"></div>
+      <p>You must read the <a class="footer-tos-link" href="tos.html">terms of service</a> before production begins.</p>
+    </footer>
 
     <script src="data.js"></script>
     <script src="script.js"></script>

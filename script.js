@@ -8,152 +8,6 @@ function imageOrFallback(src, alt, fallback) {
   return `<img src="${src}" alt="${alt}" loading="lazy" />`;
 }
 
-function renderMediaPreview(item) {
-  if (!item.src) {
-    if (item.markdown || item.markdownSrc) return "";
-    return `
-      <div class="media-placeholder">
-        <strong>${item.type}</strong>
-        <span>Add a file path or URL in data.js to preview this ${item.type}.</span>
-      </div>
-    `;
-  }
-
-  if (item.type === "video") {
-    return `<video src="${item.src}" controls playsinline poster="${item.thumbnail || ""}"></video>`;
-  }
-
-  return `<img src="${item.src}" alt="${item.title}" loading="lazy" />`;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function renderInlineMarkdown(value) {
-  const linkPattern = /\[([^\]]+)\]\((<[^>]+>|[^)]+)\)/g;
-  return escapeHtml(value)
-    .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(linkPattern, (_match, text, rawHref) => {
-      let href = rawHref.trim().replace(/^<|>$/g, "");
-      if (/^www\./i.test(href)) href = `https://${href}`;
-
-      const safeHref = escapeHtml(href);
-      const safeText = renderInlineMarkdown(text);
-      const external = /^(https?:)?\/\//i.test(href);
-      const target = external ? ' target="_blank" rel="noreferrer"' : "";
-      return `<a href="${safeHref}"${target}>${safeText}</a>`;
-    });
-}
-
-function renderMarkdown(markdown) {
-  const lines = markdown.replace(/\r\n/g, "\n").split("\n");
-  const html = [];
-  let inCode = false;
-  let codeLines = [];
-  let inList = false;
-
-  function closeList() {
-    if (!inList) return;
-    html.push("</ul>");
-    inList = false;
-  }
-
-  lines.forEach((line) => {
-    if (line.trim().startsWith("```")) {
-      if (inCode) {
-        html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-        codeLines = [];
-        inCode = false;
-      } else {
-        closeList();
-        inCode = true;
-      }
-      return;
-    }
-
-    if (inCode) {
-      codeLines.push(line);
-      return;
-    }
-
-    if (!line.trim()) {
-      closeList();
-      return;
-    }
-
-    const heading = line.match(/^(#{1,3})\s+(.+)$/);
-    if (heading) {
-      closeList();
-      const level = heading[1].length + 2;
-      html.push(`<h${level}>${renderInlineMarkdown(heading[2])}</h${level}>`);
-      return;
-    }
-
-    const listItem = line.match(/^\s*[-*]\s+(.+)$/);
-    if (listItem) {
-      if (!inList) {
-        html.push("<ul>");
-        inList = true;
-      }
-      html.push(`<li>${renderInlineMarkdown(listItem[1])}</li>`);
-      return;
-    }
-
-    const quote = line.match(/^>\s+(.+)$/);
-    if (quote) {
-      closeList();
-      html.push(`<blockquote>${renderInlineMarkdown(quote[1])}</blockquote>`);
-      return;
-    }
-
-    closeList();
-    html.push(`<p>${renderInlineMarkdown(line)}</p>`);
-  });
-
-  closeList();
-  if (inCode) html.push(`<pre><code>${escapeHtml(codeLines.join("\n"))}</code></pre>`);
-  return html.join("");
-}
-
-async function getMarkdownDetails(item) {
-  if (item.markdown) return item.markdown;
-  if (!item.markdownSrc) return "";
-
-  const response = await fetch(item.markdownSrc);
-  if (!response.ok) throw new Error(`Unable to load markdown: ${item.markdownSrc}`);
-  return response.text();
-}
-
-function formatStat(value) {
-  if (value === null || value === undefined || value === "") return "...";
-  return new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value));
-}
-
-function projectStatsMarkup(project, index) {
-  const stats = project.stats || {};
-  return `
-    <div class="project-stats" data-project-stats="${index}">
-      <span><strong data-stat="playing">${formatStat(stats.playing)}</strong><small>Playing</small></span>
-      <span><strong data-stat="likes">${formatStat(stats.likes)}</strong><small>Likes</small></span>
-      <span><strong data-stat="favorites">${formatStat(stats.favorites)}</strong><small>Favourites</small></span>
-    </div>
-  `;
-}
-
-function getPlaceId(project) {
-  if (project.placeId) return String(project.placeId);
-  const match = project.link?.match(/\/games\/(\d+)/);
-  return match?.[1] || "";
-}
-
 function getYouTubeId(url = "") {
   const patterns = [
     /youtu\.be\/([^?&/]+)/i,
@@ -210,30 +64,7 @@ function getShowcaseThumbnail(item) {
 }
 
 function renderData() {
-  $(".brand-mark").innerHTML = imageOrFallback(data.brand.logo, "Pdv logo", "P");
   $(".avatar-core").innerHTML = imageOrFallback(data.brand.heroImage, "Pdv brand image", "Pdv");
-  $("#code-gallery").innerHTML = `
-    <div class="code-cards">
-      ${data.skillMedia
-        .map(
-          (item, index) => `
-            <button class="code-card glass-panel skill-media-card" type="button" data-skill-index="${index}">
-              <div class="code-visual" aria-hidden="true">
-                ${
-                  item.thumbnail || item.src
-                    ? `<img src="${item.thumbnail || item.src}" alt="" loading="lazy" />`
-                    : "<i></i><i></i><i></i><i></i><i></i>"
-                }
-              </div>
-              <strong>${item.title}</strong>
-              <small>${item.description}</small>
-            </button>
-          `
-        )
-        .join("")}
-    </div>
-  `;
-
   $("#tool-grid").innerHTML = data.tools
     .map(
       (tool) => `
@@ -245,53 +76,27 @@ function renderData() {
     )
     .join("");
 
-  $("#project-grid").innerHTML = `
-    <div class="project-stack" aria-label="Project stack">
-      ${data.projects
-        .map(
-          (project, index) => `
-            <button class="project-stack-card glass-panel" type="button" data-project-toggle style="--stack-index: ${index}">
-              <div class="project-art" aria-hidden="true">
-                ${
-                  project.image
-                    ? `<img src="${project.image}" alt="" loading="lazy" />`
-                    : "<span></span><span></span><span></span>"
-                }
-              </div>
-            </button>
-          `
-        )
-        .join("")}
-    </div>
-    <div class="project-list" aria-hidden="true">
-      <button class="btn btn-special project-collapse" type="button" data-project-toggle>Collapse Projects</button>
-      ${data.projects
-        .map(
-          (project, index) => `
-            <article class="project-card glass-panel">
-              <div class="project-art" aria-hidden="true">
-                ${
-                  project.image
-                    ? `<img src="${project.image}" alt="" loading="lazy" />`
-                    : "<span></span><span></span><span></span>"
-                }
-              </div>
-              <div class="project-card-body">
-                <h3>${project.title}</h3>
-                <p>By <strong>@${project.studio}</strong></p>
-                <p>${project.description}</p>
-                ${projectStatsMarkup(project, index)}
-                <a class="btn btn-special project-action" href="${project.link}" target="_blank">View Game</a>
-              </div>
-            </article>
-          `
-        )
-        .join("")}
-    </div>
-  `;
-
-  hydrateProjectStats();
-  window.setInterval(hydrateProjectStats, 120000);
+  $("#project-grid").innerHTML = data.projects
+    .map(
+      (project) => `
+        <article class="project-card glass-panel">
+          <div class="project-art" aria-hidden="true">
+            ${
+              project.image
+                ? `<img src="${project.image}" alt="" loading="lazy" />`
+                : "<span></span><span></span><span></span>"
+            }
+          </div>
+          <div class="project-card-body">
+            <h3>${project.title}</h3>
+            <p>By <strong>@${project.studio}</strong></p>
+            <p>${project.description}</p>
+            <a class="btn btn-special project-action" href="${project.link}" target="_blank" rel="noreferrer">View Game</a>
+          </div>
+        </article>
+      `
+    )
+    .join("");
 
   $("#showcase-track").innerHTML = data.showcases
     .map(
@@ -334,7 +139,6 @@ function renderData() {
       (contact, index) => `
         <a class="contact-button" href="${contact.url}" target="_blank" rel="noreferrer" aria-label="${contact.label}">
           <span class="contact-icon">${imageOrFallback(contact.iconImage, `${contact.label} icon`, contact.icon)}</span>
-          <span class="contact-label">${contact.label}</span>
         </a>
       `
     )
@@ -401,66 +205,11 @@ function renderPricePanel(activeIndex) {
           .join("")}
       </div>
       <div class="price-side">
-        <a class="btn btn-special" href="#contact">Request!</a>
+        <a class="btn btn-special" href="#contact">Request</a>
         <strong>${activePlan.price}</strong>
       </div>
     </article>
   `;
-}
-
-function bindModal() {
-  const modal = $("#code-modal");
-  const title = $("#modal-title");
-  const description = $("#modal-description");
-  const media = $("#modal-media");
-  const markdown = $("#modal-markdown");
-
-  $("#code-gallery").addEventListener("click", async (event) => {
-    const mediaCard = event.target.closest("[data-skill-index]");
-    if (mediaCard) {
-      const item = data.skillMedia[Number(mediaCard.dataset.skillIndex)];
-      title.textContent = item.title;
-      description.textContent = "";
-      description.hidden = true;
-      media.hidden = false;
-      media.innerHTML = renderMediaPreview(item);
-      markdown.innerHTML = "";
-      markdown.hidden = true;
-      modal.setAttribute("aria-hidden", "false");
-      modal.querySelector(".modal-card").scrollTop = 0;
-
-      try {
-        const details = await getMarkdownDetails(item);
-        if (details) {
-          markdown.hidden = false;
-          markdown.innerHTML = renderMarkdown(details);
-          modal.querySelector(".modal-card").scrollTop = 0;
-        }
-      } catch (error) {
-        markdown.hidden = false;
-        markdown.innerHTML = `<p class="markdown-error">Markdown details could not be loaded.</p>`;
-      }
-      return;
-    }
-  });
-
-  $$("[data-close-modal]").forEach((button) => {
-    button.addEventListener("click", () => {
-      modal.setAttribute("aria-hidden", "true");
-      media.innerHTML = "";
-      markdown.innerHTML = "";
-      description.hidden = false;
-    });
-  });
-
-  window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      modal.setAttribute("aria-hidden", "true");
-      media.innerHTML = "";
-      markdown.innerHTML = "";
-      description.hidden = false;
-    }
-  });
 }
 
 function bindPrices() {
@@ -471,93 +220,6 @@ function bindPrices() {
     bindMagneticButtons();
     bindCardTilt();
     bindScrollReveal();
-  });
-}
-
-function bindProjects() {
-  $("#project-grid").addEventListener("click", (event) => {
-    const toggle = event.target.closest("[data-project-toggle]");
-    if (!toggle) return;
-
-    const grid = $("#project-grid");
-    grid.classList.toggle("is-open");
-    $(".project-list", grid).setAttribute("aria-hidden", String(!grid.classList.contains("is-open")));
-    bindScrollReveal();
-  });
-}
-
-async function getUniverseId(project) {
-  if (project.universeId) return String(project.universeId);
-
-  const placeId = getPlaceId(project);
-  if (!placeId) return "";
-
-  const response = await fetch(`https://apis.roblox.com/universes/v1/places/${placeId}/universe`);
-  if (!response.ok) throw new Error(`Universe lookup failed for place ${placeId}`);
-  const payload = await response.json();
-  project.universeId = String(payload.universeId || payload.UniverseId || "");
-  return project.universeId;
-}
-
-async function hydrateProjectStats() {
-  const projectsWithUniverse = await Promise.all(
-    data.projects.map(async (project, index) => {
-      try {
-        const universeId = await getUniverseId(project);
-        return universeId ? { project, index, universeId } : null;
-      } catch (error) {
-        return null;
-      }
-    })
-  );
-
-  const validProjects = projectsWithUniverse.filter(Boolean);
-  if (!validProjects.length) return;
-
-  const universeIds = validProjects.map((item) => item.universeId);
-
-  try {
-    const [gamesResponse, votesResponse, favoritesResults] = await Promise.all([
-      fetch(`https://games.roblox.com/v1/games?universeIds=${universeIds.join(",")}`),
-      fetch(`https://games.roblox.com/v1/games/votes?universeIds=${universeIds.join(",")}`),
-      Promise.all(
-        validProjects.map((item) =>
-          fetch(`https://games.roblox.com/v1/games/${item.universeId}/favorites/count`)
-            .then((response) => (response.ok ? response.json() : null))
-            .catch(() => null)
-        )
-      ),
-    ]);
-
-    const gamesPayload = gamesResponse.ok ? await gamesResponse.json() : { data: [] };
-    const votesPayload = votesResponse.ok ? await votesResponse.json() : { data: [] };
-
-    validProjects.forEach((item, favoriteIndex) => {
-      const game = gamesPayload.data?.find((entry) => String(entry.id) === item.universeId);
-      const vote = votesPayload.data?.find((entry) => String(entry.id) === item.universeId);
-      const favorites = favoritesResults[favoriteIndex]?.favoritesCount ?? favoritesResults[favoriteIndex]?.count;
-
-      item.project.stats = {
-        playing: game?.playing ?? item.project.stats?.playing ?? null,
-        likes: vote?.upVotes ?? game?.upVotes ?? item.project.stats?.likes ?? null,
-        favorites: favorites ?? game?.favoritedCount ?? item.project.stats?.favorites ?? null,
-      };
-
-      updateProjectStats(item.index, item.project.stats);
-    });
-  } catch (error) {
-    data.projects.forEach((project, index) => updateProjectStats(index, project.stats || {}));
-  }
-}
-
-function updateProjectStats(index, stats) {
-  $$(`[data-project-stats="${index}"]`).forEach((container) => {
-    const playing = container.querySelector('[data-stat="playing"]');
-    const likes = container.querySelector('[data-stat="likes"]');
-    const favorites = container.querySelector('[data-stat="favorites"]');
-    if (playing) playing.textContent = formatStat(stats.playing);
-    if (likes) likes.textContent = formatStat(stats.likes);
-    if (favorites) favorites.textContent = formatStat(stats.favorites);
   });
 }
 
@@ -649,7 +311,7 @@ function bindMagneticButtons() {
 }
 
 function bindCardTilt() {
-  const cards = $$(".project-card, .price-system, .review-card");
+  const cards = $$(".price-system");
 
   cards.forEach((card) => {
     if (card.dataset.tiltBound) return;
@@ -673,7 +335,7 @@ function bindCardTilt() {
 
 function bindScrollReveal() {
   const revealItems = $$(
-    "main .glass-panel, main .code-card, main .tool-chip, main .price-system, main .contact-button"
+    "main .glass-panel, main .code-card, main .tool-chip, main .price-system, .contact-button"
   );
 
   revealItems.forEach((item, index) => {
@@ -745,9 +407,7 @@ function initScene() {
 }
 
 renderData();
-bindModal();
 bindPrices();
-bindProjects();
 bindTabs();
 bindWorkFlowScroll();
 bindMagneticButtons();
