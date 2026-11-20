@@ -84,7 +84,18 @@ window.portfolioData = {
       description: "Ocean engine I made",
       image: "assets/images/socials/x_black.png",
       thumbnail: "",
-      url: "https://x.com/pdv389/status/2086763562077458536?a=DelQ7RjHP1Hn5gMLhGA&s=20",
+      embedCode: `<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Ocean Decor - Product for sale
+#RobloxDev #Roblox
+
+Buy on Gumroad: https://t.co/8R6i4BO0Zw 
+
+10% discount code: WT43YNB (Applicable to the first 20 people)
+
+Or DM me via Discord to buy
+
+Discord: .phongdev
+My discord link: https://t.co/OVeJEdsGRM https://t.co/xMg6gNutS3</p>&mdash; pdv (@pdv389) <a href="https://x.com/pdv389/status/2086763562077458536?ref_src=twsrc%5Etfw">August 10, 2026</a></blockquote>
+<script async src="https://platform.x.com/widgets.js" charset="utf-8"></script>`,
     },
     {
       title: "Devlog #5",
@@ -93,7 +104,8 @@ window.portfolioData = {
       description: "Combat system I made",
       image: "assets/images/socials/x_black.png",
       thumbnail: "",
-      url: "https://x.com/pdv389/status/2123430014800797991?a=lDx81O2yt-DYwn--PKs&s=20",
+      embedCode: `<blockquote class="twitter-tweet"><p lang="en" dir="ltr">Script by me, the combat mechanics I made https://t.co/tvijvE4GoN</p>&mdash; pdv (@pdv389) <a href="https://x.com/pdv389/status/2123430014800797991?ref_src=twsrc%5Etfw">November 19, 2026</a></blockquote>
+<script async src="https://platform.x.com/widgets.js" charset="utf-8"></script>`,
     },
   ],
   prices: [

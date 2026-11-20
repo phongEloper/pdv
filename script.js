@@ -26,41 +26,62 @@ function getStreamableId(url = "") {
 
 function getShowcasePlatform(item) {
   const platform = (item.platform || "").toLowerCase();
-  const url = item.url || item.src || "";
+  const url = item.url || item.src || item.embedUrl || item.embedCode || "";
   if (platform.includes("youtube") || /youtu\.?be|youtube\.com/i.test(url)) return "YouTube";
   if (platform === "x" || platform.includes("twitter") || /x\.com|twitter\.com/i.test(url)) return "X";
   if (platform.includes("streamable") || /streamable\.com/i.test(url)) return "Streamable";
   return item.platform || "Video";
 }
 
-function getShowcaseThumbnail(item) {
-  const platform = getShowcasePlatform(item);
+function getShowcaseEmbed(item) {
   const source = item.src || item.url || "";
   const isVideoFile = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(source);
+  const platform = getShowcasePlatform(item);
 
-  if (item.thumbnail) {
-    return `<img src="${item.thumbnail}" alt="${item.title} thumbnail" loading="lazy" />`;
+  if (item.embedCode) {
+    return item.embedCode
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "")
+      .replace(/<script\b[^>]*\/?>/gi, "");
+  }
+
+  if (item.embedUrl) {
+    return `<iframe src="${item.embedUrl}" title="${item.title}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
   }
 
   const youtubeId = getYouTubeId(source);
   if (youtubeId) {
-    return `<img src="https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg" alt="${item.title} thumbnail" loading="lazy" />`;
+    return `<iframe src="https://www.youtube-nocookie.com/embed/${encodeURIComponent(youtubeId)}?rel=0" title="${item.title}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+  }
+
+  if (platform === "X") {
+    const postId = source.match(/\/status\/(\d+)/i)?.[1];
+    if (postId) {
+      const postUrl = source.match(/https?:\/\/(?:www\.)?(?:x|twitter)\.com\/[^/?#]+\/status\/\d+/i)?.[0] || `https://x.com/i/status/${postId}`;
+      return `<blockquote class="twitter-tweet" data-theme="light" data-dnt="true"><a href="${postUrl}">View this post on X</a></blockquote>`;
+    }
   }
 
   const streamableId = getStreamableId(source);
   if (streamableId) {
-    return `<img src="https://cdn-cf-east.streamable.com/image/${streamableId}.jpg" alt="${item.title} thumbnail" loading="lazy" />`;
+    return `<iframe src="https://streamable.com/e/${encodeURIComponent(streamableId)}" title="${item.title}" loading="lazy" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
   }
 
   if (isVideoFile) {
-    return `<video src="${source}" muted playsinline preload="metadata" poster="${item.image || ""}"></video>`;
+    return `<video src="${source}" controls playsinline preload="metadata" poster="${item.thumbnail || item.image || ""}"></video>`;
   }
 
-  if (item.image) {
-    return `<img src="${item.image}" alt="${platform} thumbnail" loading="lazy" />`;
-  }
+  return item.thumbnail || item.image
+    ? `<img src="${item.thumbnail || item.image}" alt="${item.title} preview" loading="lazy" draggable="false" />`
+    : `<span class="showcase-placeholder">${platform}</span>`;
+}
 
-  return `<span class="showcase-placeholder">${platform}</span>`;
+let activeProjectIndex = 0;
+let activeShowcaseIndex = 0;
+let activePriceIndex = 0;
+let xWidgetsPromise = null;
+
+function wrapIndex(index, length) {
+  return (index + length) % length;
 }
 
 function renderData() {
@@ -76,40 +97,8 @@ function renderData() {
     )
     .join("");
 
-  $("#project-grid").innerHTML = data.projects
-    .map(
-      (project) => `
-        <article class="project-card glass-panel">
-          <div class="project-art" aria-hidden="true">
-            ${
-              project.image
-                ? `<img src="${project.image}" alt="" loading="lazy" />`
-                : "<span></span><span></span><span></span>"
-            }
-          </div>
-          <div class="project-card-body">
-            <h3>${project.title}</h3>
-            <p>By <strong>@${project.studio}</strong></p>
-            <p>${project.description}</p>
-            <a class="btn btn-special project-action" href="${project.link}" target="_blank" rel="noreferrer">View Game</a>
-          </div>
-        </article>
-      `
-    )
-    .join("");
-
-  $("#showcase-track").innerHTML = data.showcases
-    .map(
-      (item) => `
-        <a class="showcase-link" href="${item.url || item.src}" target="_blank" rel="noreferrer" data-platform="${getShowcasePlatform(item)}">
-          <span class="showcase-art" aria-hidden="true">
-            ${getShowcaseThumbnail(item)}
-            <span class="play-badge"></span>
-          </span>
-        </a>
-      `
-    )
-    .join("");
+  renderProjectCarousel(activeProjectIndex);
+  renderShowcaseCarousel(activeShowcaseIndex);
 
   const reviewItems = [...data.reviews, ...data.reviews];
   $("#reviews-track").innerHTML = reviewItems
@@ -145,6 +134,150 @@ function renderData() {
     .join("");
 }
 
+function renderProjectCarousel(index) {
+  if (!data.projects.length) return;
+  const previousIndex = activeProjectIndex;
+  activeProjectIndex = wrapIndex(index, data.projects.length);
+  const isChanging = activeProjectIndex !== previousIndex;
+  const direction = index < previousIndex ? -1 : 1;
+  const project = data.projects[activeProjectIndex];
+  const count = data.projects.length;
+
+  $("#project-grid").innerHTML = `
+    <div class="content-carousel project-carousel">
+      <a class="carousel-frame project-frame" href="${project.link}" target="_blank" rel="noreferrer" aria-label="Open ${project.title} in a new tab">
+        <div class="carousel-banner ${isChanging ? "is-sliding" : ""}" style="--slide-offset: ${isChanging ? direction * 100 : 0}%">
+          ${project.image ? `<img src="${project.image}" alt="" loading="lazy" draggable="false" />` : `<span class="carousel-placeholder">${project.title}</span>`}
+        </div>
+        <span class="carousel-swipe-zone" aria-hidden="true"></span>
+      </a>
+      <div class="carousel-footer">
+        <div class="carousel-controls" role="group" aria-label="Project navigation">
+          <button class="carousel-arrow" type="button" data-carousel-step="-1" aria-label="Previous project"><iconify-icon icon="solar:arrow-left-linear" aria-hidden="true"></iconify-icon></button>
+          <button class="carousel-arrow" type="button" data-carousel-step="1" aria-label="Next project"><iconify-icon icon="solar:arrow-right-linear" aria-hidden="true"></iconify-icon></button>
+        </div>
+        <span class="carousel-footer-page" aria-label="Page ${activeProjectIndex + 1} of ${count}">${activeProjectIndex + 1} / ${count}</span>
+        <div class="carousel-copy">
+          <h3>${project.title}</h3>
+          <span class="carousel-kicker">By @${project.studio}</span>
+          <p>${project.description}</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderShowcaseCarousel(index) {
+  if (!data.showcases.length) return;
+  const previousIndex = activeShowcaseIndex;
+  activeShowcaseIndex = wrapIndex(index, data.showcases.length);
+  const isChanging = activeShowcaseIndex !== previousIndex;
+  const direction = index < previousIndex ? -1 : 1;
+  const item = data.showcases[activeShowcaseIndex];
+  const count = data.showcases.length;
+
+  $("#showcase-track").innerHTML = `
+    <div class="content-carousel showcase-carousel">
+      <div class="carousel-frame showcase-frame" data-platform="${getShowcasePlatform(item)}">
+        <div class="carousel-banner ${isChanging ? "is-sliding" : ""}" style="--slide-offset: ${isChanging ? direction * 100 : 0}%">
+          ${getShowcaseEmbed(item)}
+        </div>
+        <span class="carousel-swipe-zone" aria-hidden="true"></span>
+      </div>
+      <div class="carousel-footer">
+        <div class="carousel-controls" role="group" aria-label="Showcase navigation">
+          <button class="carousel-arrow" type="button" data-carousel-step="-1" aria-label="Previous showcase"><iconify-icon icon="solar:arrow-left-linear" aria-hidden="true"></iconify-icon></button>
+          <button class="carousel-arrow" type="button" data-carousel-step="1" aria-label="Next showcase"><iconify-icon icon="solar:arrow-right-linear" aria-hidden="true"></iconify-icon></button>
+        </div>
+        <span class="carousel-footer-page" aria-label="Page ${activeShowcaseIndex + 1} of ${count}">${activeShowcaseIndex + 1} / ${count}</span>
+        <div class="carousel-copy">
+          <span class="carousel-kicker">${getShowcasePlatform(item)}</span>
+          <h3>${item.title}</h3>
+          <p>${item.description}</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  if (getShowcasePlatform(item) === "X") {
+    loadXWidgets($("#showcase-track .showcase-frame"));
+  }
+}
+
+function loadXWidgets(container) {
+  if (!container?.querySelector(".twitter-tweet")) return;
+  if (window.twttr?.widgets?.load) {
+    window.twttr.widgets.load(container);
+    return;
+  }
+
+  if (!xWidgetsPromise) {
+    xWidgetsPromise = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://platform.x.com/widgets.js";
+      script.async = true;
+      script.charset = "utf-8";
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  }
+
+  xWidgetsPromise
+    .then(() => window.twttr?.widgets?.load(container))
+    .catch(() => {});
+}
+
+function bindSwipeCarousel(container, getIndex, renderSlide) {
+  let pointerStart = null;
+  let suppressClickUntil = 0;
+
+  container.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-carousel-step]");
+    if (button) {
+      event.preventDefault();
+      renderSlide(getIndex() + Number(button.dataset.carouselStep));
+      return;
+    }
+
+    if (Date.now() < suppressClickUntil) {
+      event.preventDefault();
+      event.stopPropagation();
+      suppressClickUntil = 0;
+    }
+  });
+
+  container.addEventListener("pointerdown", (event) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    if (event.target.closest("button, iframe")) return;
+    const frame = event.target.closest(".carousel-frame");
+    if (!frame) return;
+
+    pointerStart = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  });
+
+  window.addEventListener("pointerup", (event) => {
+    if (!pointerStart || pointerStart.id !== event.pointerId) return;
+    const deltaX = event.clientX - pointerStart.x;
+    const deltaY = event.clientY - pointerStart.y;
+    pointerStart = null;
+
+    if (Math.abs(deltaX) < 42 || Math.abs(deltaX) < Math.abs(deltaY) * 1.15) return;
+    suppressClickUntil = Date.now() + 500;
+    renderSlide(getIndex() + (deltaX < 0 ? 1 : -1));
+  });
+
+  const clearPointer = (event) => {
+    if (pointerStart?.id === event.pointerId) pointerStart = null;
+  };
+  window.addEventListener("pointercancel", clearPointer);
+}
+
+function bindCarousels() {
+  bindSwipeCarousel($("#project-grid"), () => activeProjectIndex, renderProjectCarousel);
+  bindSwipeCarousel($("#showcase-track"), () => activeShowcaseIndex, renderShowcaseCarousel);
+}
+
 function renderWorkFlow() {
   const steps = data.workSteps || [];
   const stepsContainer = $("#work-steps");
@@ -167,58 +300,52 @@ function renderWorkFlow() {
 }
 
 function renderPricePanel(activeIndex) {
+  if (!data.prices.length) return;
+  const previousIndex = activePriceIndex;
+  activePriceIndex = wrapIndex(activeIndex, data.prices.length);
+  const isChanging = activePriceIndex !== previousIndex;
+  const direction = activeIndex < previousIndex ? -1 : 1;
+  activeIndex = activePriceIndex;
   const activePlan = data.prices[activeIndex];
 
   $("#price-grid").innerHTML = `
-    <div class="price-tabs" role="tablist" aria-label="Pricing systems">
-      ${data.prices
-        .map(
-          (plan, index) => `
-            <button
-              class="price-tab ${index === activeIndex ? "active" : ""}"
-              type="button"
-              role="tab"
-              aria-selected="${index === activeIndex}"
-              data-price-index="${index}"
-            >
-              ${plan.name}
-            </button>
-          `
-        )
-        .join("")}
-    </div>
-    <article class="price-system">
-      <div class="price-main">
-        <h3>${activePlan.name}</h3>
-        <p>${activePlan.description}</p>
-      </div>
-      <div class="price-features">
-        ${activePlan.features
-          .map(
-            (feature) => `
-              <span>
-                <i aria-hidden="true">&#10003;</i>
-                <span>${feature}</span>
-              </span>
-            `
-          )
-          .join("")}
-      </div>
-      <div class="price-side">
-        <a class="btn btn-special" href="#contact">Request</a>
-        <strong>${activePlan.price}</strong>
+    <article class="price-system" aria-live="polite">
+      <div class="price-plan-content ${isChanging ? "is-sliding" : ""}" style="--slide-offset: ${isChanging ? direction * 100 : 0}%">
+        <div class="price-main">
+          <h3>${activePlan.name}</h3>
+          <p>${activePlan.description}</p>
+        </div>
+        <div class="price-features">
+          ${activePlan.features
+            .map(
+              (feature) => `
+                <span>
+                  <i aria-hidden="true">&#10003;</i>
+                  <span>${feature}</span>
+                </span>
+              `
+            )
+            .join("")}
+        </div>
+        <div class="price-side">
+          <a class="btn btn-special" href="#contact">Request</a>
+          <strong>${activePlan.price}</strong>
+        </div>
       </div>
     </article>
+    <div class="price-navigation" role="group" aria-label="Pricing system navigation">
+      <button class="price-arrow" type="button" data-price-step="-1" aria-label="Previous system"><iconify-icon icon="solar:arrow-left-linear" aria-hidden="true"></iconify-icon></button>
+      <span class="price-navigation-label" aria-live="polite">${activeIndex + 1} / ${data.prices.length}</span>
+      <button class="price-arrow" type="button" data-price-step="1" aria-label="Next system"><iconify-icon icon="solar:arrow-right-linear" aria-hidden="true"></iconify-icon></button>
+    </div>
   `;
 }
 
 function bindPrices() {
   $("#price-grid").addEventListener("click", (event) => {
-    const tab = event.target.closest("[data-price-index]");
-    if (!tab) return;
-    renderPricePanel(Number(tab.dataset.priceIndex));
-    bindMagneticButtons();
-    bindCardTilt();
+    const button = event.target.closest("[data-price-step]");
+    if (!button) return;
+    renderPricePanel(activePriceIndex + Number(button.dataset.priceStep));
     bindScrollReveal();
   });
 }
@@ -287,50 +414,6 @@ function bindWorkFlowScroll() {
   window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate);
   update();
-}
-
-function bindMagneticButtons() {
-  $$(".btn-special, .tab-special").forEach((button) => {
-    if (button.dataset.magneticBound) return;
-    button.dataset.magneticBound = "true";
-
-    button.addEventListener("pointermove", (event) => {
-      if (window.matchMedia("(pointer: coarse)").matches) return;
-      const rect = button.getBoundingClientRect();
-      const x = event.clientX - rect.left - rect.width / 2;
-      const y = event.clientY - rect.top - rect.height / 2;
-      button.style.setProperty("--magnet-x", `${Math.max(Math.min(x * 0.16, 8), -8)}px`);
-      button.style.setProperty("--magnet-y", `${Math.max(Math.min(y * 0.22, 7), -7)}px`);
-    });
-
-    button.addEventListener("pointerleave", () => {
-      button.style.setProperty("--magnet-x", "0px");
-      button.style.setProperty("--magnet-y", "0px");
-    });
-  });
-}
-
-function bindCardTilt() {
-  const cards = $$(".price-system");
-
-  cards.forEach((card) => {
-    if (card.dataset.tiltBound) return;
-    card.dataset.tiltBound = "true";
-
-    card.addEventListener("pointermove", (event) => {
-      if (window.matchMedia("(pointer: coarse)").matches) return;
-      const rect = card.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width - 0.5;
-      const y = (event.clientY - rect.top) / rect.height - 0.5;
-      card.style.setProperty("--tilt-x", `${Math.max(Math.min(-y * 7, 5), -5)}deg`);
-      card.style.setProperty("--tilt-y", `${Math.max(Math.min(x * 8, 6), -6)}deg`);
-    });
-
-    card.addEventListener("pointerleave", () => {
-      card.style.setProperty("--tilt-x", "0deg");
-      card.style.setProperty("--tilt-y", "0deg");
-    });
-  });
 }
 
 function bindScrollReveal() {
@@ -408,10 +491,9 @@ function initScene() {
 
 renderData();
 bindPrices();
+bindCarousels();
 bindTabs();
 bindWorkFlowScroll();
-bindMagneticButtons();
-bindCardTilt();
 bindScrollReveal();
 
 initScene();
@@ -427,8 +509,11 @@ function enableSmoothScrolling() {
     if (!target) return;
     event.preventDefault();
 
+    const isContact = target.matches(".contact-section");
     const headerOffset = ($(".site-header")?.offsetHeight || 0) + 24;
-    const top = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+    const top = isContact
+      ? document.documentElement.scrollHeight - window.innerHeight
+      : target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
 
     if ("scrollTo" in window) {
       window.scrollTo({ top, behavior: "smooth" });
